@@ -1,0 +1,108 @@
+openapi: 3.0.0
+info:
+  title: MTG Daily Backend
+  version: 1.0.0
+
+servers:
+  - url: "http://localhost:8080/api/v1"
+
+paths:
+  /hello:
+    get:
+      tags:
+        - mtg
+      operationId: hello
+      summary: hello
+      description: hello
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HelloResponse'
+  /card:
+    get:
+      tags:
+        - mtg
+      operationId: getCard
+      summary: get card
+      description: get card
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+
+components:
+  schemas:
+    HelloResponse:
+      description: Successful response
+      type: string
+
+    CardResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The card's name.
+        manaCost:
+          type: string
+          description: The mana cost required to play the card.
+        cmc:
+          type: integer
+          description: The converted mana cost of the card.
+        colors:
+          type: array
+          items:
+            type: string
+          description: The card's colors.
+        supertypes:
+          type: array
+          items:
+            type: string
+          description: The supertypes of the card.
+        types:
+          type: array
+          items:
+            type: string
+          description: The basic types of the card.
+        subtypes:
+          type: array
+          items:
+            type: string
+          description: The subtypes of the card.
+        rarity:
+          type: string
+          description: The rarity level of the card.
+        set:
+          type: string
+          description: The set the card belongs to.
+        setFullName:
+          type: string
+          description: The name of the set the card belongs to.
+          x-java-name: setName #Maps to "setName" in JSON
+        text:
+          type: string
+          description: The card's rules text.
+        power:
+          type: string
+          description: The card's power, applicable to creatures.
+        toughness:
+          type: string
+          description: The card's toughness, applicable to creatures.
+        layout:
+          type: string
+          description: The card's layout type.
+        imageUrl:
+          type: string
+          description: URL to an image of the card.
+        originalText:
+          type: string
+          description: The original printed text of the card.
+        id:
+          type: string
+          description: A unique identifier for the card.
+
