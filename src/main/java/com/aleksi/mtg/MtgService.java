@@ -1,16 +1,18 @@
 package com.aleksi.mtg;
 
 import org.SwaggerCodeGenExample.model.CardResponse;
+import org.SwaggerCodeGenExample.model.GuessRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 @Service
 public class MtgService {
-
+    private CardResponse dailyCard = new CardResponse();
     private final RestTemplate restTemplate;
 
     @Autowired
@@ -21,6 +23,22 @@ public class MtgService {
     public ResponseEntity<String> doHello(){
         return ResponseEntity.ok().body("Hello");
     }
+    private void initializeCard(){
+        dailyCard = getCard();
+    }
+
+    public void guess(GameSession gameSession,GuessRequest request){
+        String targetCardName = getCard().getName();
+        if(!Objects.equals(request.getCardName(), targetCardName)){
+                gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses()+1);
+        }
+        System.out.println(request.getCardName());
+    }
+
+    private String generateHint(){
+        return "hint :P";
+    }
+
 
     public CardResponse getCard(){
         String apiUrl = "https://api.magicthegathering.io/v1/cards?name=kasla";
