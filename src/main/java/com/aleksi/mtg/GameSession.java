@@ -1,5 +1,8 @@
 package com.aleksi.mtg;
 
+import org.SwaggerCodeGenExample.model.CardResponse;
+import org.SwaggerCodeGenExample.model.Hint;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,14 +10,25 @@ public class GameSession {
     private String targetCardId; // Unique identifier for the MTG card
     private String targetCardName; // Name of the target card
     private int numberOfGuesses;
-    private List<String> hintsProvided;
+    private List<Hint> hintsProvided;
     private String gameStatus; // e.g., "IN_PROGRESS", "WON", "LOST"
     private String lastGuess;
     private final int maxGuesses;
 
-    public GameSession(String targetCardId, String targetCardName, int maxGuesses) {
+    public CardResponse getTargetCard() {
+        return targetCard;
+    }
+
+    private final CardResponse targetCard;
+
+    public void setHintsProvided(List<Hint> hintsProvided) {
+        this.hintsProvided = hintsProvided;
+    }
+
+    public GameSession(String targetCardId, String targetCardName, int maxGuesses, CardResponse targetCard) {
         this.targetCardId = targetCardId;
         this.targetCardName = targetCardName;
+        this.targetCard = targetCard;
         this.numberOfGuesses = 0;
         this.hintsProvided = new ArrayList<>();
         this.gameStatus = "IN_PROGRESS";
@@ -38,7 +52,7 @@ public class GameSession {
         this.numberOfGuesses = numberOfGuesses;
     }
 
-    public List<String> getHintsProvided() {
+    public List<Hint> getHintsProvided() {
         return hintsProvided;
     }
 
@@ -62,7 +76,7 @@ public class GameSession {
         return maxGuesses;
     }
 
-    public void addHint(String hint) {
+    public void addHint(Hint hint) {
         hintsProvided.add(hint);
     }
 

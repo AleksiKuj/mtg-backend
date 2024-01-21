@@ -2,17 +2,21 @@ package com.aleksi.mtg;
 
 import org.SwaggerCodeGenExample.model.CardResponse;
 import org.SwaggerCodeGenExample.model.GuessRequest;
+import org.SwaggerCodeGenExample.model.Hint;
+import org.SwaggerCodeGenExample.model.HintGivenHint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
 public class MtgService {
-    private CardResponse dailyCard = new CardResponse();
+
+    public final int maxGuesses = 5;
     private final RestTemplate restTemplate;
 
     @Autowired
@@ -20,23 +24,44 @@ public class MtgService {
         this.restTemplate = restTemplate;
     }
 
-    public ResponseEntity<String> doHello(){
-        return ResponseEntity.ok().body("Hello");
-    }
-    private void initializeCard(){
-        dailyCard = getCard();
-    }
-
     public void guess(GameSession gameSession,GuessRequest request){
-        String targetCardName = getCard().getName();
-        if(!Objects.equals(request.getCardName(), targetCardName)){
-                gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses()+1);
+        String targetCardName = gameSession.getTargetCardName();
+        String guessedCard = request.getCardName();
+        int numberOfGuesses = gameSession.getNumberOfGuesses();
+        List<Hint> hintsProvided = gameSession.getHintsProvided();
+
+        gameSession.setNumberOfGuesses(numberOfGuesses+1);
+
+        if(!Objects.equals(guessedCard, targetCardName)){
+            Hint generatedHint = generateHint(numberOfGuesses);
+            hintsProvided.add(generatedHint);
+            if(numberOfGuesses == maxGuesses){
+                System.out.println(numberOfGuesses + "LOST GAME");
+                gameSession.setGameStatus("LOST");
+            }
+        }
+        if(Objects.equals(guessedCard,targetCardName)){
+            gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses()+1);
+            gameSession.setGameStatus("WON");
+
         }
         System.out.println(request.getCardName());
     }
 
-    private String generateHint(){
-        return "hint :P";
+    private Hint generateHint(int hintNumber){
+        Hint hint = new Hint();
+        hint.setHintNumber(hintNumber);
+        HintGivenHint givenHint = new HintGivenHint();
+        givenHint.setHintText("hintText" + hintNumber);
+        givenHint.setHintValue("hintValue" + hintNumber);
+        hint.setGivenHint(givenHint);
+
+        //add hint based on number of guesses
+        //get stats from gameSession.getTargetCard()
+        //for example targetCard().getToughness and power
+        // hintText = stats
+        //hintValue = toughness "/" power
+        return hint;
     }
 
 
@@ -45,9 +70,7 @@ public class MtgService {
         CardList response = restTemplate.getForObject(apiUrl,CardList.class);
         assert response != null;
         Card testCard = response.getCards().get(0);
-        CardResponse cardResponse = mapCardToCardResponse(testCard);
-        System.out.println(cardResponse);
-        return cardResponse;
+        return mapCardToCardResponse(testCard);
     }
     public CardResponse mapCardToCardResponse(Card card) {
         CardResponse cardResponse = new CardResponse();

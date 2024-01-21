@@ -60,6 +60,21 @@ paths:
 
 components:
   schemas:
+    Hint:
+      type: object
+      properties:
+        hintNumber:
+          type: integer
+          description: number of hints
+        givenHint:
+          type: object
+          properties:
+            hintText:
+              type: string
+            hintValue:
+              type: string
+
+
     GuessRequest:
       type: object
       required:
@@ -68,6 +83,7 @@ components:
         cardName:
           type: string
           description: Card name guessed
+
     GameResponse:
       type: object
       properties:
@@ -77,11 +93,13 @@ components:
         hintsProvided:
           type: array
           items:
-            type: string
+            $ref: "#/components/schemas/Hint"
         gameStatus:
           type: string
         message:
           type: string
+        hint:
+          type:
 
 
     HelloResponse:
