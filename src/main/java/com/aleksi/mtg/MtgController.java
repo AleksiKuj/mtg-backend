@@ -18,30 +18,19 @@ public class MtgController implements CardApi {
         this.mtgService = mtgService;
     }
 
-    @PostMapping("/start-game")
-    public ResponseEntity<String> startGame(HttpSession session) {
-        // Initialize a new GameSession
-        GameSession gameSession = new GameSession("1",mtgService.getCard().getName(), mtgService.maxGuesses, mtgService.getCard());
-
-        // Store the gameSession in the HttpSession
-        session.setAttribute("gameSession", gameSession);
-        return ResponseEntity.ok("New game started");
-    }
-
     @PostMapping("/guess")
     public ResponseEntity<GameResponse> guess(@RequestBody GuessRequest request, HttpSession session){
         GameSession gameSession = (GameSession) session.getAttribute("gameSession");
+        // Initialize a new GameSession if it doesn't exist
         if (gameSession == null) {
-            System.out.println("null session");
-            // Handle the case where there is no game session (e.g., return an error response)
-            GameResponse response = new GameResponse();
-            response.setMessage("Session not found");
-            return ResponseEntity.badRequest().body(response);
+            gameSession = new GameSession("1", mtgService.getCard().getName(), mtgService.maxGuesses, mtgService.getCard());
+            session.setAttribute("gameSession", gameSession);
         }
 
         if (gameSession.isGameOver()) {
             System.out.println("game over");
             // Handle the case where the game is already over
+            //todo: return different message for game over
             return ResponseEntity.ok(new GameResponse());
         }
 
@@ -58,13 +47,6 @@ public class MtgController implements CardApi {
          //Return the updated game state
         return ResponseEntity.ok(response);
     }
-
-
-    //name post parameter
-    //if name === card.name win
-    //else guesses +1
-    //game_status
-    //local maxGuesses value to check agaisnt
 
     @GetMapping("/card")
     public ResponseEntity<CardResponse> getCard(){

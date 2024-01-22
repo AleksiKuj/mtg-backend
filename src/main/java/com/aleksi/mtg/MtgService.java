@@ -5,18 +5,16 @@ import org.SwaggerCodeGenExample.model.GuessRequest;
 import org.SwaggerCodeGenExample.model.Hint;
 import org.SwaggerCodeGenExample.model.HintGivenHint;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 public class MtgService {
 
-    public final int maxGuesses = 5;
+    public final int maxGuesses = 6;
     private final RestTemplate restTemplate;
 
     @Autowired
@@ -33,7 +31,7 @@ public class MtgService {
         gameSession.setNumberOfGuesses(numberOfGuesses+1);
 
         if(!Objects.equals(guessedCard, targetCardName)){
-            Hint generatedHint = generateHint(numberOfGuesses);
+            Hint generatedHint = generateHint(numberOfGuesses,gameSession);
             hintsProvided.add(generatedHint);
             if(numberOfGuesses == maxGuesses){
                 System.out.println(numberOfGuesses + "LOST GAME");
@@ -43,27 +41,51 @@ public class MtgService {
         if(Objects.equals(guessedCard,targetCardName)){
             gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses()+1);
             gameSession.setGameStatus("WON");
-
+        //todo: add message "won in x guesses"
         }
-        System.out.println(request.getCardName());
     }
 
-    private Hint generateHint(int hintNumber){
+    private Hint generateHint(int hintNumber, GameSession gameSession){
         Hint hint = new Hint();
         hint.setHintNumber(hintNumber);
         HintGivenHint givenHint = new HintGivenHint();
-        givenHint.setHintText("hintText" + hintNumber);
-        givenHint.setHintValue("hintValue" + hintNumber);
-        hint.setGivenHint(givenHint);
+        CardResponse targetCard = gameSession.getTargetCard();
 
-        //add hint based on number of guesses
-        //get stats from gameSession.getTargetCard()
-        //for example targetCard().getToughness and power
-        // hintText = stats
-        //hintValue = toughness "/" power
+        switch(hintNumber){
+            case 0:
+                givenHint.setHintText("stats");
+                givenHint.setHintValue(targetCard.getPower() + "/" + targetCard.getToughness());
+                break;
+            case 1:
+                givenHint.setHintText("colors");
+                givenHint.setHintValue(targetCard.getColors().toString());
+                break;
+            case 2:
+                givenHint.setHintText("type");
+                givenHint.setHintValue(targetCard.getType());
+                break;
+            case 3:
+                //todo: format manacost correctly
+                givenHint.setHintText("manaCost");
+                givenHint.setHintValue(targetCard.getManaCost());
+                break;
+            case 4:
+                givenHint.setHintText("cardText");
+                //todo: COMPARE TO originalText and choose one. also censor the characters name from text
+                givenHint.setHintValue(targetCard.getText());
+                break;
+            case 5:
+                givenHint.setHintText("set");
+                givenHint.setHintValue(targetCard.getSetFullName());
+                break;
+            default:
+                givenHint.setHintText("");
+                givenHint.setHintValue("");
+                break;
+        }
+        hint.setGivenHint(givenHint);
         return hint;
     }
-
 
     public CardResponse getCard(){
         String apiUrl = "https://api.magicthegathering.io/v1/cards?name=kasla";
@@ -91,6 +113,7 @@ public class MtgService {
         cardResponse.setImageUrl(card.getImageUrl());
         cardResponse.setOriginalText(card.getOriginalText());
         cardResponse.setId(card.getId());
+        cardResponse.setType(card.getType());
         return cardResponse;
     }
 }

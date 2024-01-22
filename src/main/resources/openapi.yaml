@@ -98,8 +98,6 @@ components:
           type: string
         message:
           type: string
-        hint:
-          type:
 
 
     HelloResponse:
@@ -123,6 +121,9 @@ components:
           items:
             type: string
           description: The card's colors.
+        type:
+          type: string
+          description: card type
         supertypes:
           type: array
           items:
