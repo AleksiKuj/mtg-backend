@@ -25,8 +25,7 @@ public class GameSession {
         this.hintsProvided = hintsProvided;
     }
 
-    public GameSession(String targetCardId, String targetCardName, int maxGuesses, CardResponse targetCard) {
-        this.targetCardId = targetCardId;
+    public GameSession( String targetCardName, int maxGuesses, CardResponse targetCard) {
         this.targetCardName = targetCardName;
         this.targetCard = targetCard;
         this.numberOfGuesses = 0;

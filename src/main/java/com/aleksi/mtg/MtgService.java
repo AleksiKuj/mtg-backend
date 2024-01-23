@@ -1,9 +1,7 @@
 package com.aleksi.mtg;
 
-import org.SwaggerCodeGenExample.model.CardResponse;
-import org.SwaggerCodeGenExample.model.GuessRequest;
-import org.SwaggerCodeGenExample.model.Hint;
-import org.SwaggerCodeGenExample.model.HintGivenHint;
+import jakarta.servlet.http.HttpSession;
+import org.SwaggerCodeGenExample.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -20,6 +18,34 @@ public class MtgService {
     @Autowired
     public MtgService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
+    }
+
+    public GameSession getGameSession(HttpSession session) {
+        GameSession gameSession = (GameSession) session.getAttribute("gameSession");
+        if (gameSession == null) {
+            gameSession = new GameSession( getCard().getName(), maxGuesses, getCard());
+            session.setAttribute("gameSession", gameSession);
+        }
+        return gameSession;
+    }
+
+    public GameResponse processGuess(GuessRequest request, GameSession gameSession) {
+        if (gameSession.isGameOver()) {
+            System.out.println("game over");
+            return new GameResponse(); // Update to provide a different message for game over
+        }
+
+        guess(gameSession, request);
+
+        GameResponse response = new GameResponse();
+        response.setNumberOfGuesses(gameSession.getNumberOfGuesses());
+        response.setHintsProvided(gameSession.getHintsProvided());
+        response.setGameStatus(gameSession.getGameStatus());
+        return response;
+    }
+
+    public void updateSession(HttpSession session, GameSession gameSession) {
+        session.setAttribute("gameSession", gameSession);
     }
 
     public void guess(GameSession gameSession,GuessRequest request){
