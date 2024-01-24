@@ -38,9 +38,12 @@ public class MtgService {
         guess(gameSession, request);
 
         GameResponse response = new GameResponse();
+
         response.setNumberOfGuesses(gameSession.getNumberOfGuesses());
         response.setHintsProvided(gameSession.getHintsProvided());
         response.setGameStatus(gameSession.getGameStatus());
+        response.setIsCorrect(Objects.equals(request.getCardName(), gameSession.getTargetCardName()));
+        response.setGuess(request.getCardName());
         return response;
     }
 
@@ -53,7 +56,6 @@ public class MtgService {
         String guessedCard = request.getCardName();
         int numberOfGuesses = gameSession.getNumberOfGuesses();
         List<Hint> hintsProvided = gameSession.getHintsProvided();
-
         gameSession.setNumberOfGuesses(numberOfGuesses+1);
 
         if(!Objects.equals(guessedCard, targetCardName)){

@@ -98,6 +98,10 @@ components:
           type: string
         message:
           type: string
+        guess:
+          type: string
+        isCorrect:
+          type: boolean
 
 
     HelloResponse:
