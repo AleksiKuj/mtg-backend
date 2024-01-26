@@ -33,7 +33,7 @@ public class MtgService {
     public GameResponse processGuess(GuessRequest request, GameSession gameSession) {
         if (gameSession.isGameOver()) {
             System.out.println("game over");
-            return new GameResponse(); // Update to provide a different message for game over
+            return new GameResponse();
         }
 
         guess(gameSession, request);
@@ -99,8 +99,7 @@ public class MtgService {
                 break;
             case 4:
                 givenHint.setHintText("cardText");
-                //todo: COMPARE TO originalText and choose one. also censor the characters name from text
-                givenHint.setHintValue(targetCard.getText());
+                givenHint.setHintValue(censorName(targetCard.getName(),targetCard.getText()) + "\n" + censorName(targetCard.getName(),targetCard.getFlavor()));
                 break;
             case 5:
                 givenHint.setHintText("set");
@@ -109,6 +108,7 @@ public class MtgService {
             default:
                 givenHint.setHintText("");
                 givenHint.setHintValue("");
+                gameSession.setGameStatus("LOST");
                 break;
         }
         hint.setGivenHint(givenHint);
@@ -132,26 +132,27 @@ public class MtgService {
         Card testCard = response.getCards().get(0);
         return mapCardToCardResponse(testCard);
     }
+
+    private static String censorName(String name, String text){
+        if(name == null || text == null){
+            return "";
+        }
+        return text.replace(name, "_____");
+    }
     public CardResponse mapCardToCardResponse(Card card) {
         CardResponse cardResponse = new CardResponse();
         cardResponse.setName(card.getName());
         cardResponse.setManaCost(card.getManaCost());
-        cardResponse.setCmc(card.getCmc());
         cardResponse.setColors(card.getColors());
-        cardResponse.setSupertypes(card.getSupertypes());
-        cardResponse.setTypes(card.getTypes());
-        cardResponse.setSubtypes(card.getSubtypes());
         cardResponse.setRarity(card.getRarity());
         cardResponse.setSet(card.getSet());
         cardResponse.setSetFullName(card.getSetName());
         cardResponse.setText(card.getText());
         cardResponse.setPower(card.getPower());
         cardResponse.setToughness(card.getToughness());
-        cardResponse.setLayout(card.getLayout());
         cardResponse.setImageUrl(card.getImageUrl());
-        cardResponse.setOriginalText(card.getOriginalText());
-        cardResponse.setId(card.getId());
         cardResponse.setType(card.getType());
+        if(card.getFlavor() != null){ cardResponse.setFlavor((card.getFlavor()));}
         return cardResponse;
     }
 }
