@@ -2,9 +2,7 @@ package com.aleksi.mtg;
 
 import jakarta.servlet.http.HttpSession;
 import org.SwaggerCodeGenExample.api.CardApi;
-import org.SwaggerCodeGenExample.model.CardResponse;
-import org.SwaggerCodeGenExample.model.GameResponse;
-import org.SwaggerCodeGenExample.model.GuessRequest;
+import org.SwaggerCodeGenExample.model.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +25,11 @@ public class MtgController implements CardApi {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/firstHint")
+    public ResponseEntity<Hint> getFirstHint(){
+        Hint response = mtgService.getFirstHint();
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/card")
     public ResponseEntity<CardResponse> getCard(){
         CardResponse response = mtgService.getCard();

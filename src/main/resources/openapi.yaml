@@ -28,7 +28,6 @@ paths:
       operationId: getCard
       summary: get card
       description: get card
-
       responses:
         200:
           description: Success
@@ -36,6 +35,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CardResponse'
+
+  /firstHint:
+    get:
+      tags:
+        - mtg
+      operationId: getFirstHint
+      summary: get first hint
+      description: get first hint
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hint'
 
   /guess:
     post:
@@ -73,7 +87,6 @@ components:
               type: string
             hintValue:
               type: string
-
 
     GuessRequest:
       type: object

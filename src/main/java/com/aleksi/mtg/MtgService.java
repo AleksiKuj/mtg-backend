@@ -25,6 +25,7 @@ public class MtgService {
         if (gameSession == null) {
             gameSession = new GameSession( getCard().getName(), maxGuesses, getCard());
             session.setAttribute("gameSession", gameSession);
+            gameSession.getHintsProvided().add(getFirstHint());
         }
         return gameSession;
     }
@@ -65,25 +66,24 @@ public class MtgService {
                 System.out.println(numberOfGuesses + "LOST GAME");
                 gameSession.setGameStatus("LOST");
             }
-        }
-        if(Objects.equals(guessedCard,targetCardName)){
-            gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses()+1);
+        } else {
+            gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses() + 1);
             gameSession.setGameStatus("WON");
-        //todo: add message "won in x guesses"
+            // Generate and add all hints
+            for (int hintNumber = 0; hintNumber <= 5; hintNumber++) {
+                Hint generatedHint = generateHint(hintNumber, gameSession);
+                hintsProvided.add(generatedHint);
+            }
         }
     }
 
     private Hint generateHint(int hintNumber, GameSession gameSession){
         Hint hint = new Hint();
-        hint.setHintNumber(hintNumber);
+        hint.setHintNumber(hintNumber+1);
         HintGivenHint givenHint = new HintGivenHint();
         CardResponse targetCard = gameSession.getTargetCard();
 
-        switch(hintNumber){
-            case 0:
-                givenHint.setHintText("stats");
-                givenHint.setHintValue(targetCard.getPower() + "/" + targetCard.getToughness());
-                break;
+        switch(hintNumber+1){
             case 1:
                 givenHint.setHintText("colors");
                 givenHint.setHintValue(targetCard.getColors().toString());
@@ -115,6 +115,16 @@ public class MtgService {
         return hint;
     }
 
+    public Hint getFirstHint(){
+        Hint hint = new Hint();
+        hint.setHintNumber(0);
+        HintGivenHint givenHint = new HintGivenHint();
+
+        givenHint.setHintText("stats");
+        givenHint.setHintValue(getCard().getPower() + "/" + getCard().getToughness());
+        hint.setGivenHint(givenHint);
+        return hint;
+    }
     public CardResponse getCard(){
         String apiUrl = "https://api.magicthegathering.io/v1/cards?name=kasla";
         CardList response = restTemplate.getForObject(apiUrl,CardList.class);
