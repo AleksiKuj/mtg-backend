@@ -22,6 +22,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/CardResponse'
 
+  /search-cards:
+    get:
+      tags:
+        - mtg
+      operationId: searchCards
+      summary: search cards
+      description: search cards
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: Name of the card to search for
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchCardsResponse'
+
   /firstHint:
     get:
       tags:
@@ -83,6 +105,7 @@ components:
           type: string
           description: Card name guessed
 
+
     GameResponse:
       type: object
       properties:
@@ -101,6 +124,20 @@ components:
           type: string
         isCorrect:
           type: boolean
+
+    SearchCardsResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+
 
     CardResponse:
       type: object
