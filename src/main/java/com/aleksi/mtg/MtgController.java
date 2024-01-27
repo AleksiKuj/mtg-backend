@@ -39,14 +39,19 @@ public class MtgController implements CardApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/search-cards")
-    public ResponseEntity<SearchCardsResponse> searchCards(@RequestParam String name) {
-        PageRequest pageRequest = PageRequest.of(0,20); //limit to 20 results
-        List<SearchCardsResponseContentInner> cardPage = shortCardRepository.findByNameContainingIgnoreCase(name,pageRequest);
-        SearchCardsResponse response = new SearchCardsResponse();
-        response.setContent(cardPage);
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping("/search-cards")
+//    public ResponseEntity<SearchCardsResponse> searchCards(@RequestParam String name) {
+//        PageRequest pageRequest = PageRequest.of(0,20); //limit to 20 results
+//        List<SearchCardsResponseContentInner> cardPage = shortCardRepository.findByNameContainingIgnoreCase(name,pageRequest);
+//        SearchCardsResponse response = new SearchCardsResponse();
+//        response.setContent(cardPage);
+//        return ResponseEntity.ok(response);
+//    }
+@GetMapping("/search-cards")
+public ResponseEntity<List<ShortCard>> searchCards() {
+    List<ShortCard> allCards = shortCardRepository.findAll();
+    return ResponseEntity.ok(allCards);
+}
     @GetMapping("/card")
     public ResponseEntity<CardResponse> getCard(){
         CardResponse response = mtgService.getCard();
