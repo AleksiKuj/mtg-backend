@@ -67,10 +67,9 @@ public class MtgService {
                 gameSession.setGameStatus("LOST");
             }
         } else {
-            gameSession.setNumberOfGuesses(gameSession.getNumberOfGuesses() + 1);
             gameSession.setGameStatus("WON");
             // Generate and add all hints
-            for (int hintNumber = 0; hintNumber <= 5; hintNumber++) {
+            for (int hintNumber = 0; hintNumber <= 6; hintNumber++) {
                 Hint generatedHint = generateHint(hintNumber, gameSession);
                 hintsProvided.add(generatedHint);
             }
@@ -105,10 +104,13 @@ public class MtgService {
                 givenHint.setHintText("set");
                 givenHint.setHintValue(targetCard.getSetFullName());
                 break;
+            case 6:
+                givenHint.setHintText("imageUrl");
+                givenHint.setHintValue(targetCard.getImageUrl());
+                break;
             default:
                 givenHint.setHintText("");
                 givenHint.setHintValue("");
-                gameSession.setGameStatus("LOST");
                 break;
         }
         hint.setGivenHint(givenHint);
