@@ -7,35 +7,19 @@ servers:
   - url: "http://localhost:8080/api/v1"
 
 paths:
-  /search-cards:
+  /initialize:
     get:
       tags:
         - mtg
-      operationId: searchCards
-      summary: Get all card names
-      description: Get all card names
+      operationId: initialize
+      summary: initialize session
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchCardsResponse'
-
-  /firstHint:
-    get:
-      tags:
-        - mtg
-      operationId: getFirstHint
-      summary: get first hint
-      description: get first hint
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Hint'
+                $ref: '#/components/schemas/InitializeResponse'
 
   /guess:
     post:
@@ -114,3 +98,11 @@ components:
                 type: string
               name:
                 type: string
+
+    InitializeResponse:
+      type: object
+      properties:
+        searchCardsResponse:
+          $ref: '#/components/schemas/SearchCardsResponse'
+        firstHint:
+          $ref: '#/components/schemas/Hint'

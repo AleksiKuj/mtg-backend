@@ -28,15 +28,19 @@ public class MtgController implements SearchCardsApi {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/firstHint")
-    public ResponseEntity<Hint> getFirstHint(){
-        Hint response = mtgService.getFirstHint();
-        return ResponseEntity.ok(response);
-    }
-    @GetMapping("/search-cards")
-    public ResponseEntity<SearchCardsResponse> searchCards() {
-        SearchCardsResponse response = mtgService.getAllCardsResponse();
-        return ResponseEntity.ok(response);
+    @GetMapping("/initialize")
+    public ResponseEntity<InitializeResponse> initialize(HttpSession session) {
+        if (session != null) {
+            session.invalidate();
+        }
+        SearchCardsResponse searchCardsResponse = mtgService.getAllCardsResponse();
+        Hint firstHint = mtgService.getFirstHint();
+
+        InitializeResponse initializeResponse = new InitializeResponse();
+        initializeResponse.setSearchCardsResponse(searchCardsResponse);
+        initializeResponse.setFirstHint(firstHint);
+
+        return ResponseEntity.ok(initializeResponse);
     }
 
 }
