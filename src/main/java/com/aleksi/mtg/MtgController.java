@@ -3,8 +3,6 @@ package com.aleksi.mtg;
 import jakarta.servlet.http.HttpSession;
 import org.SwaggerCodeGenExample.api.CardApi;
 import org.SwaggerCodeGenExample.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +17,6 @@ public class MtgController implements CardApi {
 
     private final MtgService mtgService;
 
-    @Autowired
-    private ShortCardRepository shortCardRepository;
     public MtgController( MtgService mtgService) {
         this.mtgService = mtgService;
     }
@@ -39,19 +35,11 @@ public class MtgController implements CardApi {
         return ResponseEntity.ok(response);
     }
 
-//    @GetMapping("/search-cards")
-//    public ResponseEntity<SearchCardsResponse> searchCards(@RequestParam String name) {
-//        PageRequest pageRequest = PageRequest.of(0,20); //limit to 20 results
-//        List<SearchCardsResponseContentInner> cardPage = shortCardRepository.findByNameContainingIgnoreCase(name,pageRequest);
-//        SearchCardsResponse response = new SearchCardsResponse();
-//        response.setContent(cardPage);
-//        return ResponseEntity.ok(response);
-//    }
-@GetMapping("/search-cards")
-public ResponseEntity<List<ShortCard>> searchCards() {
-    List<ShortCard> allCards = shortCardRepository.findAll();
-    return ResponseEntity.ok(allCards);
-}
+    @GetMapping("/search-cards")
+    public ResponseEntity<List<ShortCard>> searchCards() {
+        List<ShortCard> response = mtgService.getAllCardNames();
+        return ResponseEntity.ok(response);
+    }
     @GetMapping("/card")
     public ResponseEntity<CardResponse> getCard(){
         CardResponse response = mtgService.getCard();

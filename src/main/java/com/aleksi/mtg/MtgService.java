@@ -1,8 +1,13 @@
 package com.aleksi.mtg;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import org.SwaggerCodeGenExample.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,12 +17,24 @@ import java.util.Objects;
 @Service
 public class MtgService {
 
+    @Autowired
+    private MongoTemplate mongoTemplate;
     public final int maxGuesses = 6;
     private final RestTemplate restTemplate;
+    private CardResponse storedCard;
+
+    @Autowired
+    private ShortCardRepository shortCardRepository;
 
     @Autowired
     public MtgService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
+    }
+
+    @Scheduled(cron = "0 0 0 * * *") //midnight daily
+    @PostConstruct
+    public void init() {
+        storedCard = fetchCardFromApi();
     }
 
     public GameSession getGameSession(HttpSession session) {
@@ -127,14 +144,36 @@ public class MtgService {
         hint.setGivenHint(givenHint);
         return hint;
     }
-    public CardResponse getCard(){
-        String apiUrl = "https://api.magicthegathering.io/v1/cards?name=kasla";
-        CardList response = restTemplate.getForObject(apiUrl,CardList.class);
+
+    private CardResponse fetchCardFromApi() {
+        ShortCard randomCard = getRandomCard();
+        System.out.println(randomCard.getName());
+        String apiUrl = "https://api.magicthegathering.io/v1/cards?name=" + randomCard.getName();
+        CardList response = restTemplate.getForObject(apiUrl, CardList.class);
         assert response != null;
         Card testCard = response.getCards().get(0);
         return mapCardToCardResponse(testCard);
     }
 
+    public CardResponse getCard() {
+        return storedCard;
+    }
+
+    public ShortCard getRandomCard() {
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.sample(1)
+        );
+
+        AggregationResults<ShortCard> result = mongoTemplate.aggregate(
+                aggregation, "cards", ShortCard.class
+        );
+
+        return result.getUniqueMappedResult();
+    }
+
+    public List<ShortCard> getAllCardNames(){
+        return shortCardRepository.findAll();
+    }
     private static String censorName(String name, String text){
         if(name == null || text == null){
             return "";
