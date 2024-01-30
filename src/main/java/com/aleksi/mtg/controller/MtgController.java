@@ -1,20 +1,19 @@
-package com.aleksi.mtg;
+package com.aleksi.mtg.controller;
 
+import com.aleksi.mtg.model.GameSession;
+import com.aleksi.mtg.service.MtgService;
 import jakarta.servlet.http.HttpSession;
-import org.SwaggerCodeGenExample.api.CardApi;
+import org.SwaggerCodeGenExample.api.SearchCardsApi;
 import org.SwaggerCodeGenExample.model.*;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @EnableMongoRepositories
 @CrossOrigin
 @RestController
 @RequestMapping("/api/v1")
-public class MtgController implements CardApi {
-
+public class MtgController implements SearchCardsApi {
     private final MtgService mtgService;
 
     public MtgController( MtgService mtgService) {
@@ -34,17 +33,10 @@ public class MtgController implements CardApi {
         Hint response = mtgService.getFirstHint();
         return ResponseEntity.ok(response);
     }
-
     @GetMapping("/search-cards")
-    public ResponseEntity<List<ShortCard>> searchCards() {
-        List<ShortCard> response = mtgService.getAllCardNames();
+    public ResponseEntity<SearchCardsResponse> searchCards() {
+        SearchCardsResponse response = mtgService.getAllCardsResponse();
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/card")
-    public ResponseEntity<CardResponse> getCard(){
-        CardResponse response = mtgService.getCard();
-        return ResponseEntity.ok(response);
-    }
-
 
 }

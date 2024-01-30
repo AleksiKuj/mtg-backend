@@ -1,4 +1,4 @@
-package com.aleksi.mtg;
+package com.aleksi.mtg.model;
 
 import java.util.List;
 

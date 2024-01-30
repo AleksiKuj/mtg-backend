@@ -1,5 +1,11 @@
-package com.aleksi.mtg;
+package com.aleksi.mtg.service;
 
+import com.aleksi.mtg.model.Card;
+import com.aleksi.mtg.model.CardList;
+import com.aleksi.mtg.model.GameSession;
+import com.aleksi.mtg.model.ShortCard;
+
+import com.aleksi.mtg.repository.ShortCardRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
 import org.SwaggerCodeGenExample.model.*;
@@ -13,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class MtgService {
@@ -21,7 +28,7 @@ public class MtgService {
     private MongoTemplate mongoTemplate;
     public final int maxGuesses = 6;
     private final RestTemplate restTemplate;
-    private CardResponse storedCard;
+    private Card storedCard;
 
     @Autowired
     private ShortCardRepository shortCardRepository;
@@ -97,7 +104,7 @@ public class MtgService {
         Hint hint = new Hint();
         hint.setHintNumber(hintNumber+1);
         HintGivenHint givenHint = new HintGivenHint();
-        CardResponse targetCard = gameSession.getTargetCard();
+        Card targetCard = gameSession.getTargetCard();
 
         switch(hintNumber+1){
             case 1:
@@ -119,7 +126,7 @@ public class MtgService {
                 break;
             case 5:
                 givenHint.setHintText("set");
-                givenHint.setHintValue(targetCard.getSetFullName());
+                givenHint.setHintValue(targetCard.getSetName());
                 break;
             case 6:
                 givenHint.setHintText("imageUrl");
@@ -145,17 +152,16 @@ public class MtgService {
         return hint;
     }
 
-    private CardResponse fetchCardFromApi() {
+    private Card fetchCardFromApi() {
         ShortCard randomCard = getRandomCard();
         System.out.println(randomCard.getName());
         String apiUrl = "https://api.magicthegathering.io/v1/cards?name=" + randomCard.getName();
         CardList response = restTemplate.getForObject(apiUrl, CardList.class);
         assert response != null;
-        Card testCard = response.getCards().get(0);
-        return mapCardToCardResponse(testCard);
+        return response.getCards().get(0);
     }
 
-    public CardResponse getCard() {
+    public Card getCard() {
         return storedCard;
     }
 
@@ -171,29 +177,26 @@ public class MtgService {
         return result.getUniqueMappedResult();
     }
 
-    public List<ShortCard> getAllCardNames(){
-        return shortCardRepository.findAll();
+    public SearchCardsResponse getAllCardsResponse() {
+        List<ShortCard> allCards = shortCardRepository.findAll();
+
+        List<SearchCardsResponseCardsInner> cardsInnerList = allCards.stream()
+                .map(shortCard -> {
+                    SearchCardsResponseCardsInner cardsInner = new SearchCardsResponseCardsInner();
+                    cardsInner.setId(shortCard.getId());
+                    cardsInner.setName(shortCard.getName());
+                    return cardsInner;
+                })
+                .collect(Collectors.toList());
+
+        SearchCardsResponse response = new SearchCardsResponse();
+        response.setCards(cardsInnerList);
+        return response;
     }
     private static String censorName(String name, String text){
         if(name == null || text == null){
             return "";
         }
         return text.replace(name, "_____");
-    }
-    public CardResponse mapCardToCardResponse(Card card) {
-        CardResponse cardResponse = new CardResponse();
-        cardResponse.setName(card.getName());
-        cardResponse.setManaCost(card.getManaCost());
-        cardResponse.setColors(card.getColors());
-        cardResponse.setRarity(card.getRarity());
-        cardResponse.setSet(card.getSet());
-        cardResponse.setSetFullName(card.getSetName());
-        cardResponse.setText(card.getText());
-        cardResponse.setPower(card.getPower());
-        cardResponse.setToughness(card.getToughness());
-        cardResponse.setImageUrl(card.getImageUrl());
-        cardResponse.setType(card.getType());
-        if(card.getFlavor() != null){ cardResponse.setFlavor((card.getFlavor()));}
-        return cardResponse;
     }
 }

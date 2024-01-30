@@ -1,9 +1,8 @@
-package com.aleksi.mtg;
+package com.aleksi.mtg.repository;
 
-import org.SwaggerCodeGenExample.model.SearchCardsResponseContentInner;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.aleksi.mtg.model.ShortCard;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 import java.util.List;
 
 public interface ShortCardRepository extends MongoRepository<ShortCard, String> {

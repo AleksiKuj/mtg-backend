@@ -1,31 +1,30 @@
-package com.aleksi.mtg;
+package com.aleksi.mtg.model;
 
-import org.SwaggerCodeGenExample.model.CardResponse;
 import org.SwaggerCodeGenExample.model.Hint;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameSession {
-    private String targetCardId; // Unique identifier for the MTG card
-    private String targetCardName; // Name of the target card
+    private String targetCardId;
+    private String targetCardName;
     private int numberOfGuesses;
     private List<Hint> hintsProvided;
-    private String gameStatus; // e.g., "IN_PROGRESS", "WON", "LOST"
+    private String gameStatus; //"IN_PROGRESS", "WON", "LOST"
     private String lastGuess;
     private final int maxGuesses;
 
-    public CardResponse getTargetCard() {
+    public Card getTargetCard() {
         return targetCard;
     }
 
-    private final CardResponse targetCard;
+    private final Card targetCard;
 
     public void setHintsProvided(List<Hint> hintsProvided) {
         this.hintsProvided = hintsProvided;
     }
 
-    public GameSession( String targetCardName, int maxGuesses, CardResponse targetCard) {
+    public GameSession( String targetCardName, int maxGuesses, Card targetCard) {
         this.targetCardName = targetCardName;
         this.targetCard = targetCard;
         this.numberOfGuesses = 0;
@@ -83,5 +82,4 @@ public class GameSession {
         return "WON".equals(gameStatus) || "LOST".equals(gameStatus) || numberOfGuesses >= maxGuesses;
     }
 
-    // Additional methods for game logic...
 }
