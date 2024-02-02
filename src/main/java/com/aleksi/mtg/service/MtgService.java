@@ -1,9 +1,6 @@
 package com.aleksi.mtg.service;
 
-import com.aleksi.mtg.model.Card;
-import com.aleksi.mtg.model.CardList;
-import com.aleksi.mtg.model.GameSession;
-import com.aleksi.mtg.model.ShortCard;
+import com.aleksi.mtg.model.*;
 
 import com.aleksi.mtg.repository.ShortCardRepository;
 import jakarta.annotation.PostConstruct;
@@ -17,8 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +22,7 @@ public class MtgService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
-    public final int maxGuesses = 6;
+    public final int maxGuesses = 10;
     private final RestTemplate restTemplate;
     private Card storedCard;
 
@@ -41,7 +37,7 @@ public class MtgService {
     @Scheduled(cron = "0 0 0 * * *") //midnight daily
     @PostConstruct
     public void init() {
-        storedCard = fetchCardFromApi();
+        storedCard = fetchRandomCardFromApi();
     }
 
     public GameSession getGameSession(HttpSession session) {
@@ -49,26 +45,40 @@ public class MtgService {
         if (gameSession == null) {
             gameSession = new GameSession( getCard().getName(), maxGuesses, getCard());
             session.setAttribute("gameSession", gameSession);
-            gameSession.getHintsProvided().add(getFirstHint());
         }
         return gameSession;
     }
 
-    public GameResponse processGuess(GuessRequest request, GameSession gameSession) {
+    public GuessResponse processGuess(GuessRequest request, GameSession gameSession) {
         if (gameSession.isGameOver()) {
-            System.out.println("game over");
-            return new GameResponse();
+            GuessResponse response = new GuessResponse();
+            if(gameSession.getGameStatus().equals("WON")){
+                response.setGameStatus("WON");
+            } else {
+                response.setGameStatus("LOST");
+            }
+            return response;
         }
 
         guess(gameSession, request);
+        if(request.getCardName().equals(gameSession.getTargetCardName())){
+            gameSession.setGameStatus("WON");
+        } else if(gameSession.getNumberOfGuesses() == maxGuesses){
+            gameSession.setGameStatus("LOST");
+        }
 
-        GameResponse response = new GameResponse();
+        GuessResponse response = new GuessResponse();
 
-        response.setNumberOfGuesses(gameSession.getNumberOfGuesses());
-        response.setHintsProvided(gameSession.getHintsProvided());
+        List<Card> guesses = gameSession.getGuesses();
+        response.setGuesses(guesses);
+        response.setAttributeCorrectness(gameSession.getAttributeCorrectness());
+        response.setMaxGuesses(gameSession.getMaxGuesses());
         response.setGameStatus(gameSession.getGameStatus());
-        response.setIsCorrect(Objects.equals(request.getCardName(), gameSession.getTargetCardName()));
-        response.setGuess(request.getCardName());
+        response.setNumberOfGuesses(gameSession.getNumberOfGuesses());
+
+        if(!guesses.isEmpty()){
+            response.setLastGuess(guesses.get(guesses.size()-1));
+        }
         return response;
     }
 
@@ -77,88 +87,96 @@ public class MtgService {
     }
 
     public void guess(GameSession gameSession,GuessRequest request){
-        String targetCardName = gameSession.getTargetCardName();
-        String guessedCard = request.getCardName();
-        int numberOfGuesses = gameSession.getNumberOfGuesses();
-        List<Hint> hintsProvided = gameSession.getHintsProvided();
-        gameSession.setNumberOfGuesses(numberOfGuesses+1);
-
-        if(!Objects.equals(guessedCard, targetCardName)){
-            Hint generatedHint = generateHint(numberOfGuesses,gameSession);
-            hintsProvided.add(generatedHint);
-            if(numberOfGuesses == maxGuesses){
-                System.out.println(numberOfGuesses + "LOST GAME");
-                gameSession.setGameStatus("LOST");
-            }
-        } else {
-            gameSession.setGameStatus("WON");
-            // Generate and add all hints
-            for (int hintNumber = 0; hintNumber <= 6; hintNumber++) {
-                Hint generatedHint = generateHint(hintNumber, gameSession);
-                hintsProvided.add(generatedHint);
-            }
-        }
-    }
-
-    private Hint generateHint(int hintNumber, GameSession gameSession){
-        Hint hint = new Hint();
-        hint.setHintNumber(hintNumber+1);
-        HintGivenHint givenHint = new HintGivenHint();
         Card targetCard = gameSession.getTargetCard();
+        Card guessedCard = fetchCardByNameFromApi(request.getCardName());
 
-        switch(hintNumber+1){
-            case 1:
-                givenHint.setHintText("colors");
-                givenHint.setHintValue(targetCard.getColors().toString());
-                break;
-            case 2:
-                givenHint.setHintText("type");
-                givenHint.setHintValue(targetCard.getType());
-                break;
-            case 3:
-                //todo: format manacost correctly
-                givenHint.setHintText("manaCost");
-                givenHint.setHintValue(targetCard.getManaCost());
-                break;
-            case 4:
-                givenHint.setHintText("cardText");
-                givenHint.setHintValue(censorName(targetCard.getName(),targetCard.getText()) + "\n" + censorName(targetCard.getName(),targetCard.getFlavor()));
-                break;
-            case 5:
-                givenHint.setHintText("set");
-                givenHint.setHintValue(targetCard.getSetName());
-                break;
-            case 6:
-                givenHint.setHintText("imageUrl");
-                givenHint.setHintValue(targetCard.getImageUrl());
-                break;
-            default:
-                givenHint.setHintText("");
-                givenHint.setHintValue("");
-                break;
+        if(guessedCard == null){
+            return;
         }
-        hint.setGivenHint(givenHint);
-        return hint;
+       int numberOfGuesses = gameSession.getNumberOfGuesses();
+       List<Card> guesses = gameSession.getGuesses();
+       gameSession.setNumberOfGuesses(numberOfGuesses+1);
+       guesses.add(guessedCard);
+
+
+        String powerStatus = compareNumericAttributes(Integer.parseInt(targetCard.getPower()), Integer.parseInt(guessedCard.getPower()));
+        gameSession.setAttributeCorrectness("power", powerStatus);
+
+        String toughnessStatus = compareNumericAttributes(Integer.parseInt(targetCard.getToughness()), Integer.parseInt(guessedCard.getToughness()));
+        gameSession.setAttributeCorrectness("toughness", toughnessStatus);
+
+        String cmcStatus = compareNumericAttributes(targetCard.getCmc(), guessedCard.getCmc());
+        gameSession.setAttributeCorrectness("cmc", cmcStatus);
+
+        String setStatus = compareAttributes(targetCard.getSet(), guessedCard.getSet());
+        gameSession.setAttributeCorrectness("set", setStatus);
+
+        String rarityStatus = compareAttributes(targetCard.getRarity(), guessedCard.getRarity());
+        gameSession.setAttributeCorrectness("rarity", rarityStatus);
+
+        List<String> targetSubtypes = targetCard.getSubtypes();
+        List<String> guessedSubtypes = guessedCard.getSubtypes();
+        String subtypesStatus = compareStringLists(targetSubtypes, guessedSubtypes);
+        gameSession.setAttributeCorrectness("subtypes", subtypesStatus);
+
+        List<String> targetColors = targetCard.getColors();
+        List<String> guessedColors = guessedCard.getColors();
+        String colorsStatus = compareStringLists(targetColors, guessedColors);
+        gameSession.setAttributeCorrectness("colors", colorsStatus);
+
     }
 
-    public Hint getFirstHint(){
-        Hint hint = new Hint();
-        hint.setHintNumber(0);
-        HintGivenHint givenHint = new HintGivenHint();
+    private String compareStringLists(List<String> list1, List<String> list2) {
+        Set<String> set1 = new HashSet<>(list1);
+        Set<String> set2 = new HashSet<>(list2);
 
-        givenHint.setHintText("stats");
-        givenHint.setHintValue(getCard().getPower() + "/" + getCard().getToughness());
-        hint.setGivenHint(givenHint);
-        return hint;
+        if (set1.equals(set2)) {
+            return "correct";
+        } else {
+            Set<String> intersection = new HashSet<>(set1);
+            intersection.retainAll(set2);
+            if (!intersection.isEmpty()) {
+                return "partial";
+            } else {
+                return "wrong";
+            }
+        }
     }
 
-    private Card fetchCardFromApi() {
+    private String compareNumericAttributes(int attribute1, int attribute2) {
+        if (attribute1 == attribute2) {
+            return "correct";
+        } else if ( attribute1 > attribute2) {
+            return "higher";
+        } else {
+            return "lower";
+        }
+    }
+
+    private String compareAttributes(String attribute1, String attribute2) {
+        if (attribute1.equals(attribute2)) {
+            return "correct";
+        } else {
+            return "wrong";
+        }
+    }
+
+    private Card fetchRandomCardFromApi() {
         ShortCard randomCard = getRandomCard();
         System.out.println(randomCard.getName());
         String apiUrl = "https://api.magicthegathering.io/v1/cards?name=" + randomCard.getName();
         CardList response = restTemplate.getForObject(apiUrl, CardList.class);
         assert response != null;
         return response.getCards().get(0);
+    }
+    public Card fetchCardByNameFromApi(String cardName) {
+        String apiUrl = "https://api.magicthegathering.io/v1/cards?type=legendary+creature&name=" + cardName;
+        CardList response = restTemplate.getForObject(apiUrl, CardList.class);
+        if (response != null && response.getCards() != null && !response.getCards().isEmpty()) {
+            return response.getCards().get(0);
+        } else {
+            return null; // Or you could throw a new RuntimeException("No cards found for name: " + cardName);
+        }
     }
 
     public Card getCard() {
@@ -192,11 +210,5 @@ public class MtgService {
         SearchCardsResponse response = new SearchCardsResponse();
         response.setCards(cardsInnerList);
         return response;
-    }
-    private static String censorName(String name, String text){
-        if(name == null || text == null){
-            return "";
-        }
-        return text.replace(name, "_____");
     }
 }

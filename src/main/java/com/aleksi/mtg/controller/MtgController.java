@@ -1,6 +1,7 @@
 package com.aleksi.mtg.controller;
 
 import com.aleksi.mtg.model.GameSession;
+import com.aleksi.mtg.model.GuessResponse;
 import com.aleksi.mtg.service.MtgService;
 import jakarta.servlet.http.HttpSession;
 import org.SwaggerCodeGenExample.api.SearchCardsApi;
@@ -20,11 +21,13 @@ public class MtgController implements SearchCardsApi {
         this.mtgService = mtgService;
     }
 
-    @PostMapping("/guess")
-    public ResponseEntity<GameResponse> guess(@RequestBody GuessRequest request, HttpSession session){
+    @PostMapping("/guess2")
+    public ResponseEntity<GuessResponse> guess(@RequestBody GuessRequest request, HttpSession session){
         GameSession gameSession = mtgService.getGameSession(session);
-        GameResponse response = mtgService.processGuess(request, gameSession);
+
+        GuessResponse response = mtgService.processGuess(request, gameSession);
         mtgService.updateSession(session, gameSession);
+
         return ResponseEntity.ok(response);
     }
 
@@ -34,11 +37,9 @@ public class MtgController implements SearchCardsApi {
             session.invalidate();
         }
         SearchCardsResponse searchCardsResponse = mtgService.getAllCardsResponse();
-        Hint firstHint = mtgService.getFirstHint();
 
         InitializeResponse initializeResponse = new InitializeResponse();
         initializeResponse.setSearchCardsResponse(searchCardsResponse);
-        initializeResponse.setFirstHint(firstHint);
 
         return ResponseEntity.ok(initializeResponse);
     }

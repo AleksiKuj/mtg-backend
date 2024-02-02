@@ -11,9 +11,47 @@ public class Card {
     private String set;
     private String setName;
     private String text;
+    private String flavor;
     private String power;
     private String toughness;
     private String imageUrl;
+
+    public int getCmc() {
+        return cmc;
+    }
+
+    public void setCmc(int cmc) {
+        this.cmc = cmc;
+    }
+
+    public List<String> getSubtypes() {
+        return subtypes;
+    }
+
+    public void setSubtypes(List<String> subtypes) {
+        this.subtypes = subtypes;
+    }
+
+    public List<String> getSupertypes() {
+        return supertypes;
+    }
+
+    public void setSupertypes(List<String> supertypes) {
+        this.supertypes = supertypes;
+    }
+
+    public List<String> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<String> types) {
+        this.types = types;
+    }
+
+    private int cmc;
+    private List<String> subtypes;
+    private List<String> supertypes;
+    private List<String> types;
 
     public String getFlavor() {
         return flavor;
@@ -23,7 +61,6 @@ public class Card {
         this.flavor = flavor;
     }
 
-    private String flavor;
 
     public String getName() {
         return name;

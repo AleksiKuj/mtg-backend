@@ -3,34 +3,63 @@ package com.aleksi.mtg.model;
 import org.SwaggerCodeGenExample.model.Hint;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GameSession {
     private String targetCardId;
     private String targetCardName;
     private int numberOfGuesses;
-    private List<Hint> hintsProvided;
     private String gameStatus; //"IN_PROGRESS", "WON", "LOST"
     private String lastGuess;
     private final int maxGuesses;
+    private List<Card> guesses;
+    private Map<String, String> attributeCorrectness = new HashMap<>();
 
+    public void setAttributeCorrectness(String attribute, String status) {
+        attributeCorrectness.put(attribute, status);
+    }
+
+    public Map<String, String> getAttributeCorrectness() {
+        return attributeCorrectness;
+    }
     public Card getTargetCard() {
         return targetCard;
     }
 
     private final Card targetCard;
 
-    public void setHintsProvided(List<Hint> hintsProvided) {
-        this.hintsProvided = hintsProvided;
+    @Override
+    public String toString() {
+        return "GameSession{" +
+                "targetCardId='" + targetCardId + '\'' +
+                ", targetCardName='" + targetCardName + '\'' +
+                ", numberOfGuesses=" + numberOfGuesses +
+                ", gameStatus='" + gameStatus + '\'' +
+                ", lastGuess='" + lastGuess + '\'' +
+                ", maxGuesses=" + maxGuesses +
+                ", guesses=" + guesses +
+                ", targetCard=" + targetCard +
+                '}';
     }
+
+    public List<Card> getGuesses() {
+        return guesses;
+    }
+
+    public void setGuesses(List<Card> guesses) {
+        this.guesses = guesses;
+    }
+
 
     public GameSession( String targetCardName, int maxGuesses, Card targetCard) {
         this.targetCardName = targetCardName;
         this.targetCard = targetCard;
         this.numberOfGuesses = 0;
-        this.hintsProvided = new ArrayList<>();
         this.gameStatus = "IN_PROGRESS";
         this.maxGuesses = maxGuesses;
+        this.guesses = new ArrayList<>();
     }
 
     // Getters and setters
@@ -50,9 +79,6 @@ public class GameSession {
         this.numberOfGuesses = numberOfGuesses;
     }
 
-    public List<Hint> getHintsProvided() {
-        return hintsProvided;
-    }
 
     public String getGameStatus() {
         return gameStatus;
@@ -72,10 +98,6 @@ public class GameSession {
 
     public int getMaxGuesses() {
         return maxGuesses;
-    }
-
-    public void addHint(Hint hint) {
-        hintsProvided.add(hint);
     }
 
     public boolean isGameOver() {
