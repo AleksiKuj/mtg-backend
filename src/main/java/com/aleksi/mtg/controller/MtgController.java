@@ -31,6 +31,14 @@ public class MtgController implements SearchCardsApi {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/hint")
+    public ResponseEntity<HintResponse> getHint(HttpSession session) {
+        GameSession gameSession = mtgService.getGameSession(session);
+        mtgService.updateSession(session, gameSession);
+        HintResponse response = mtgService.getHint(gameSession);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/initialize")
     public ResponseEntity<InitializeResponse> initialize(HttpSession session) {
         if (session != null) {
@@ -40,7 +48,7 @@ public class MtgController implements SearchCardsApi {
 
         InitializeResponse initializeResponse = new InitializeResponse();
         initializeResponse.setSearchCardsResponse(searchCardsResponse);
-
+        initializeResponse.setMaxGuesses(mtgService.getMaxGuesses());
         return ResponseEntity.ok(initializeResponse);
     }
 

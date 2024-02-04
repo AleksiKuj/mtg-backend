@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +77,8 @@ public class MtgService {
         response.setGameStatus(gameSession.getGameStatus());
         response.setNumberOfGuesses(gameSession.getNumberOfGuesses());
 
+        response.setCorrect(request.getCardName().equals(gameSession.getTargetCardName()));
+
         if(!guesses.isEmpty()){
             response.setLastGuess(guesses.get(guesses.size()-1));
         }
@@ -96,36 +99,43 @@ public class MtgService {
        int numberOfGuesses = gameSession.getNumberOfGuesses();
        List<Card> guesses = gameSession.getGuesses();
        gameSession.setNumberOfGuesses(numberOfGuesses+1);
-       guesses.add(guessedCard);
-
 
         String powerStatus = compareNumericAttributes(Integer.parseInt(targetCard.getPower()), Integer.parseInt(guessedCard.getPower()));
-        gameSession.setAttributeCorrectness("power", powerStatus);
+        guessedCard.setAttributeCorrectness("power", powerStatus);
 
         String toughnessStatus = compareNumericAttributes(Integer.parseInt(targetCard.getToughness()), Integer.parseInt(guessedCard.getToughness()));
-        gameSession.setAttributeCorrectness("toughness", toughnessStatus);
+        guessedCard.setAttributeCorrectness("toughness", toughnessStatus);
 
         String cmcStatus = compareNumericAttributes(targetCard.getCmc(), guessedCard.getCmc());
-        gameSession.setAttributeCorrectness("cmc", cmcStatus);
+        guessedCard.setAttributeCorrectness("cmc", cmcStatus);
 
         String setStatus = compareAttributes(targetCard.getSet(), guessedCard.getSet());
-        gameSession.setAttributeCorrectness("set", setStatus);
+        guessedCard.setAttributeCorrectness("set", setStatus);
 
         String rarityStatus = compareAttributes(targetCard.getRarity(), guessedCard.getRarity());
-        gameSession.setAttributeCorrectness("rarity", rarityStatus);
+        guessedCard.setAttributeCorrectness("rarity", rarityStatus);
 
         List<String> targetSubtypes = targetCard.getSubtypes();
         List<String> guessedSubtypes = guessedCard.getSubtypes();
         String subtypesStatus = compareStringLists(targetSubtypes, guessedSubtypes);
-        gameSession.setAttributeCorrectness("subtypes", subtypesStatus);
+        guessedCard.setAttributeCorrectness("subtypes", subtypesStatus);
 
         List<String> targetColors = targetCard.getColors();
         List<String> guessedColors = guessedCard.getColors();
         String colorsStatus = compareStringLists(targetColors, guessedColors);
-        gameSession.setAttributeCorrectness("colors", colorsStatus);
+        guessedCard.setAttributeCorrectness("colors", colorsStatus);
 
+        guesses.add(guessedCard);
     }
 
+    public HintResponse getHint(GameSession session){
+        HintResponse response = new HintResponse();
+        response.setHint(censorName(getCard().getName(), getCard().getText())+ " \n " + censorName(getCard().getName(), getCard().getFlavor()));
+        session.setNumberOfGuesses(session.getNumberOfGuesses()+1);
+        response.setNumberOfGuesses(BigDecimal.valueOf(session.getNumberOfGuesses()));
+        response.setMaxGuesses(getMaxGuesses());
+        return response;
+    }
     private String compareStringLists(List<String> list1, List<String> list2) {
         Set<String> set1 = new HashSet<>(list1);
         Set<String> set2 = new HashSet<>(list2);
@@ -182,6 +192,7 @@ public class MtgService {
     public Card getCard() {
         return storedCard;
     }
+    public BigDecimal getMaxGuesses(){ return BigDecimal.valueOf(maxGuesses);}
 
     public ShortCard getRandomCard() {
         Aggregation aggregation = Aggregation.newAggregation(
@@ -210,5 +221,12 @@ public class MtgService {
         SearchCardsResponse response = new SearchCardsResponse();
         response.setCards(cardsInnerList);
         return response;
+    }
+
+    private static String censorName(String name, String text){
+        if(name == null || text == null){
+            return "";
+        }
+        return text.replace(name, "_____");
     }
 }

@@ -12,6 +12,16 @@ public class GuessResponse {
     private List<Card> guesses;
     private Map<String, String> attributeCorrectness = new HashMap<>();
 
+    public Boolean getCorrect() {
+        return isCorrect;
+    }
+
+    public void setCorrect(Boolean correct) {
+        isCorrect = correct;
+    }
+
+    private Boolean isCorrect;
+
     public int getNumberOfGuesses() {
         return numberOfGuesses;
     }

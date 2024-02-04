@@ -21,6 +21,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/InitializeResponse'
 
+  /hint:
+    get:
+      tags:
+        - mtg
+      operationId: getHint
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HintResponse'
+
   /guess:
     post:
       tags:
@@ -87,6 +100,16 @@ components:
         isCorrect:
           type: boolean
 
+    HintResponse:
+      type: object
+      properties:
+       hint:
+         type: string
+       numberOfGuesses:
+         type: number
+       maxGuesses:
+         type: number
+
     SearchCardsResponse:
       properties:
         cards:
@@ -104,5 +127,5 @@ components:
       properties:
         searchCardsResponse:
           $ref: '#/components/schemas/SearchCardsResponse'
-        firstHint:
-          $ref: '#/components/schemas/Hint'
+        maxGuesses:
+          type: number

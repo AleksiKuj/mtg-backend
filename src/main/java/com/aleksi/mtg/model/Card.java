@@ -1,6 +1,8 @@
 package com.aleksi.mtg.model;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Card {
     private String name;
@@ -15,6 +17,15 @@ public class Card {
     private String power;
     private String toughness;
     private String imageUrl;
+    private Map<String, String> attributeCorrectness = new HashMap<>();
+
+    public void setAttributeCorrectness(String attribute, String status) {
+        attributeCorrectness.put(attribute, status);
+    }
+
+    public Map<String, String> getAttributeCorrectness() {
+        return attributeCorrectness;
+    }
 
     public int getCmc() {
         return cmc;
