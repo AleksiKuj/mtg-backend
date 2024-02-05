@@ -1,7 +1,5 @@
 package com.aleksi.mtg.model;
 
-import org.SwaggerCodeGenExample.model.Hint;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
