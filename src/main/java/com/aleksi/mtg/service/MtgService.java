@@ -2,6 +2,7 @@ package com.aleksi.mtg.service;
 
 import com.aleksi.mtg.model.*;
 
+import com.aleksi.mtg.repository.FullCardRepository;
 import com.aleksi.mtg.repository.ShortCardRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpSession;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,8 @@ public class MtgService {
     private ShortCardRepository shortCardRepository;
 
     @Autowired
+    FullCardRepository fullCardRepository;
+    @Autowired
     public MtgService(RestTemplate restTemplate){
         this.restTemplate = restTemplate;
     }
@@ -38,7 +42,12 @@ public class MtgService {
     @Scheduled(cron = "0 0 0 * * *") //midnight daily
     @PostConstruct
     public void init() {
-        storedCard = fetchRandomCardFromApi();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        Card card = fetchTodaysCard();
+        if(card != null){
+            System.out.println("NEW CARD: " + card);
+        }
+        storedCard = card;
     }
 
     public GameSession getGameSession(HttpSession session) {
@@ -81,6 +90,10 @@ public class MtgService {
 
         if(!guesses.isEmpty()){
             response.setLastGuess(guesses.get(guesses.size()-1));
+        }
+
+        if(gameSession.isGameOver()){
+            response.setTargetCard(getCard());
         }
         return response;
     }
@@ -171,6 +184,25 @@ public class MtgService {
         }
     }
 
+    public Date getTodayUtc() {
+        TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
+        Calendar calendar = Calendar.getInstance(utcTimeZone);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+    private Card fetchTodaysCard() {
+        Date today = getTodayUtc();
+        Optional<Card> cardOptional = fullCardRepository.findByDate(today);
+        if (cardOptional.isPresent()) {
+            return cardOptional.get();
+        } else {
+            System.out.println("No card found for today's date.");
+            return fetchRandomCardFromApi();
+        }
+    }
     private Card fetchRandomCardFromApi() {
         ShortCard randomCard = getRandomCard();
         System.out.println(randomCard.getName());
@@ -228,5 +260,12 @@ public class MtgService {
             return "";
         }
         return text.replace(name, "_____");
+    }
+
+    public Duration calculateTimeUntilNextMidnight() {
+        ZonedDateTime nowUtc = ZonedDateTime.now(ZoneId.of("UTC"));
+        ZonedDateTime nextMidnightUtc = nowUtc.toLocalDate().plusDays(1).atStartOfDay(ZoneId.of("UTC"));
+
+        return Duration.between(nowUtc, nextMidnightUtc);
     }
 }

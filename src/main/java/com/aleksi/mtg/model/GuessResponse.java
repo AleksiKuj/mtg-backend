@@ -8,6 +8,7 @@ public class GuessResponse {
     private int numberOfGuesses;
     private String gameStatus; //"IN_PROGRESS", "WON", "LOST"
     private Card lastGuess;
+    private Card targetCard;
     private  int maxGuesses;
     private List<Card> guesses;
     private Map<String, String> attributeCorrectness = new HashMap<>();
@@ -64,6 +65,14 @@ public class GuessResponse {
 
     public Map<String, String> getAttributeCorrectness() {
         return attributeCorrectness;
+    }
+
+    public Card getTargetCard() {
+        return targetCard;
+    }
+
+    public void setTargetCard(Card targetCard) {
+        this.targetCard = targetCard;
     }
 
     public void setAttributeCorrectness(Map<String, String> attributeCorrectness) {

@@ -1,9 +1,13 @@
 package com.aleksi.mtg.model;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Document(collection = "fullcards")
 public class Card {
     private String name;
     private String manaCost;
@@ -17,6 +21,17 @@ public class Card {
     private String power;
     private String toughness;
     private String imageUrl;
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    private Date date;
+
     private Map<String, String> attributeCorrectness = new HashMap<>();
 
     public void setAttributeCorrectness(String attribute, String status) {
@@ -174,9 +189,16 @@ public class Card {
                 ", set='" + set + '\'' +
                 ", setName='" + setName + '\'' +
                 ", text='" + text + '\'' +
+                ", flavor='" + flavor + '\'' +
                 ", power='" + power + '\'' +
                 ", toughness='" + toughness + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", date=" + date +
+                ", attributeCorrectness=" + attributeCorrectness +
+                ", cmc=" + cmc +
+                ", subtypes=" + subtypes +
+                ", supertypes=" + supertypes +
+                ", types=" + types +
                 '}';
     }
 }

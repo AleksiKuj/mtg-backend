@@ -34,43 +34,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/HintResponse'
 
-  /guess:
-    post:
-      tags:
-        - mtg
-      operationId: guess
-      summary: guess
-      description: guess
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GuessRequest"
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GameResponse'
-
 components:
   schemas:
-    Hint:
-      type: object
-      properties:
-        hintNumber:
-          type: integer
-          description: number of hints
-        givenHint:
-          type: object
-          properties:
-            hintText:
-              type: string
-            hintValue:
-              type: string
-
     GuessRequest:
       type: object
       required:
@@ -79,26 +44,6 @@ components:
         cardName:
           type: string
           description: Card name guessed
-
-
-    GameResponse:
-      type: object
-      properties:
-        numberOfGuesses:
-          type: integer
-          description: Number of guesses
-        hintsProvided:
-          type: array
-          items:
-            $ref: "#/components/schemas/Hint"
-        gameStatus:
-          type: string
-        message:
-          type: string
-        guess:
-          type: string
-        isCorrect:
-          type: boolean
 
     HintResponse:
       type: object
@@ -128,4 +73,6 @@ components:
         searchCardsResponse:
           $ref: '#/components/schemas/SearchCardsResponse'
         maxGuesses:
+          type: number
+        timeUntilReset:
           type: number
